@@ -1,6 +1,6 @@
 WITH rides_from_pickup_location AS (
      SELECT pickup_location_id
-          , TIMESTAMP_TRUNC( pickup_datetime, DAY ) AS PICKUP_DATE
+          , DATETIME_TRUNC( pickup_datetime, DAY ) AS PICKUP_DATE
           , ARRAY_AGG( 
                STRUCT( dropoff_location_id
                      , fare_amount

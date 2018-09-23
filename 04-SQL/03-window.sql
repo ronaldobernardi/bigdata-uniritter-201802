@@ -1,7 +1,7 @@
 WITH q_daily_avg_fare AS (
      SELECT AVG( fare_amount ) AS AVG_FARE
           , rate_code
-          , TIMESTAMP_TRUNC( pickup_datetime, DAY ) AS PICKUP_DATE
+          , DATETIME_TRUNC( pickup_datetime, DAY ) AS PICKUP_DATE
        FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2017`
       WHERE pickup_datetime >= '2017-01-01'
       GROUP BY PICKUP_DATE
