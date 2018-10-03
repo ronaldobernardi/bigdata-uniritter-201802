@@ -5,6 +5,9 @@ nyc_parquet.printSchema()
 nyc_parquet.select("payment_type").distinct().explain()
 nyc_parquet.select("payment_type").distinct().show()
 
+nyc_parquet.select("PULocationID").distinct().explain()
+
+
 nyc_parquet.groupBy("payment_type").count().explain()
 nyc_parquet.groupBy("payment_type").count().show()
 

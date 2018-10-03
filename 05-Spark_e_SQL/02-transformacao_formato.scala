@@ -8,4 +8,4 @@ df.explain()
 nyc_jan.printSchema()
 
 
-df.write.parquet( "class_yellow_tripdata_2017-01.parquet" )
+df.write.parquet( "class_yellow_tripdata_2017-01-cw.parquet" )

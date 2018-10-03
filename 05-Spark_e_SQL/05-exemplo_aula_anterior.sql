@@ -1,10 +1,8 @@
-/*
  CREATE TEMPORARY VIEW nyc_parquet
   USING org.apache.spark.sql.parquet
 OPTIONS (
           path "s3a://aula-spark/yellow_tripdata_2017.parquet"
 );
-*/
 
 EXPLAIN WITH q_trip_type AS (
            SELECT RatecodeID
