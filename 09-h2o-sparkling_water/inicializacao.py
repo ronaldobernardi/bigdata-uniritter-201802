@@ -71,11 +71,11 @@ def distance(lat1, lon1, lat2, lon2):
     a = 0.5 - cos((lat2 - lat1) * p)/2 + cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2
     return 12742 * asin(sqrt(a))
 
-# Dataframe API
-distance_udf = udf(lambda lat1, lon1, lat2, lon2: distance(lat1, lon1, lat2, lon2), DoubleType())
-
 # SQL
 sqlContext.udf.register("distance_udf", distance)
+
+# Dataframe API
+distance_udf = udf(lambda lat1, lon1, lat2, lon2: distance(lat1, lon1, lat2, lon2), DoubleType())
 
 
 #######################################################################################
@@ -111,7 +111,7 @@ corridas_ratio = corridas_com_coordenadas \
 
 h2o_taxi_rate = hc.as_h2o_frame(corridas_ratio, "corridas_ratio")
 
-### POR ENQUANTO DEPOIS VAMOS MUDAR ISSO
+### POR ENQUANTO RODAR ASSIM, DEPOIS VAMOS MUDAR ISSO
 train, validation, test = h2o_taxi_rate.split_frame(ratios=[.4, .1], seed=1234)
 
 
