@@ -13,7 +13,6 @@ from pyspark.sql.types import StringType, DoubleType
 
 # Funções que foram utilizadas nas UDFs
 from math import cos, asin, sqrt
-import pygeohash
 
 
 #######################################################################################
@@ -65,16 +64,8 @@ green_taxis.createOrReplaceTempView("green_taxis")
 # Registro de User Defined Functions (UDFs) que serão utilizadas nas atividades
 #######################################################################################
 
-###### Encoding de GeoHash a partir de coordenada geográfica
-
-# Dataframe API
-encode_udf = udf(lambda lat, lon, level: pygeohash.encode(lat, lon, level), StringType())
-
-# SQL
-sqlContext.udf.register("encode_udf", lambda lat, lon, level: pygeohash.encode(lat, lon, level))
 
 ###### Distância entre 2 pares de coordenadas pela Fórmula de Haversine
-
 def distance(lat1, lon1, lat2, lon2):
     p = 0.017453292519943295     #Pi/180
     a = 0.5 - cos((lat2 - lat1) * p)/2 + cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2
@@ -107,27 +98,26 @@ corridas_com_coordenadas = green_taxis \
     .where((col("Pickup_latitude") != 0) & (col("Pickup_longitude") != 0 ) & \
            (col("Dropoff_latitude") != 0) & (col("Dropoff_longitude") != 0 )) \
     .select("*", \
-        encode_udf("Pickup_latitude", "Pickup_longitude", lit(5)).alias("Pickup_geohash"), \
-        encode_udf("Dropoff_latitude", "Dropoff_longitude", lit(5)).alias("Dropoff_geohash"), \
         (green_taxis.Trip_distance * 1.609).alias('Trip_distance_km'), \
         expr('tip_amount / fare_amount as tip_rate'), \
-        distance_udf("Pickup_latitude", "Pickup_longitude", "Dropoff_latitude", "Dropoff_longitude").alias("calc_distance"))
+        distance_udf("Pickup_latitude", "Pickup_longitude", \
+                     "Dropoff_latitude", "Dropoff_longitude").alias("calc_distance"))
 
 corridas_ratio = corridas_com_coordenadas \
     .select("*", \
-            (corridas_com_coordenadas.calc_distance / corridas_com_coordenadas.Trip_distance_km).alias('dist_ratio')) \
-    .persist(StorageLevel.DISK_ONLY_2)
+        (corridas_com_coordenadas.calc_distance / corridas_com_coordenadas.Trip_distance_km).alias('dist_ratio')) \
+    .persist(StorageLevel.DISK_ONLY)
 
 
 h2o_taxi_rate = hc.as_h2o_frame(corridas_ratio, "corridas_ratio")
 
-### DEPOIS VAMOS MUDAR ISSO
+### POR ENQUANTO DEPOIS VAMOS MUDAR ISSO
 train, validation, test = h2o_taxi_rate.split_frame(ratios=[.4, .1], seed=1234)
 
 
 from h2o.estimators.glm import *
 
-glm_regression = H2OGeneralizedLinearEstimator(family="gaussian", lambda_search=False)
+glm_regression = H2OGeneralizedLinearEstimator(family="gaussian", lambda_search=False, alpha=0)
 
 glm_regression.train( y="tip_rate", training_frame = train, validation_frame = validation, \
                       x=['Passenger_count', 'Trip_distance', 'Fare_amount', 'Extra', 'Tolls_amount'])
